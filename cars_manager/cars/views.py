@@ -1,6 +1,6 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from cars.models import Car
-from django.db.models import F
+from django.db.models import Max
 
 def car_list(request):
     """Display a list of cars with optional color filtering"""
@@ -28,7 +28,7 @@ def move_car(request, car_id):
 
         # Shift cars if necessary
         if Car.objects.filter(position=new_position).exists():
-            Car.objects.filter(position__gte=new_position).update(position=F('position') + 1)
+            Car.objects.filter(position__gte=new_position).update(position=Max('position') + 1)
 
         car.position = new_position
         car.save()
@@ -42,7 +42,7 @@ def add_car(request):
         color = request.POST['color']
 
         # Find the next available position
-        max_position = Car.objects.aggregate(max_pos=F('position'))['max_pos'] or 0
+        max_position = Car.objects.aggregate(max_pos=Max('position'))['max_pos'] or 0
         new_position = max_position + 1
 
         Car.objects.create(name=name, color=color, position=new_position)
